@@ -53,20 +53,6 @@ export const config = {
 
   dryRun: bool(process.env.DRY_RUN, false),
 
-  // CCAvenue payment-gateway webhook (second, redundant enrollment source).
-  ccavenue: {
-    workingKey: process.env.CCAVENUE_WORKING_KEY || "",
-  },
-
-  // Cross-source reconciliation so a student is welcomed exactly once even when
-  // both Learnyst and CCAvenue fire.
-  reconcile: {
-    // If this email was welcomed within this window, a backup source won't re-send.
-    windowMs: Number(process.env.RECONCILE_WINDOW_MS || 12 * 60 * 60 * 1000),
-    // Grace delay on the CCAvenue path so Learnyst (richer payload) usually wins.
-    ccavenueDelayMs: Number(process.env.CCAVENUE_DELAY_MS || 120_000),
-  },
-
   // How often the retry worker scans the durable queue.
   queuePollMs: Number(process.env.QUEUE_POLL_MS || 5000),
 

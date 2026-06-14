@@ -62,17 +62,16 @@ export function hasActiveKey(key) {
   );
 }
 
-export function enqueue({ key, enrollment, source = "learnyst", delayMs = 0 }) {
+export function enqueue({ key, enrollment }) {
   const now = Date.now();
   const id = crypto.randomUUID();
   store.jobs[id] = {
     id,
     key,
     enrollment,
-    source,
     status: "pending",
     attempts: 0,
-    nextAttemptAt: now + delayMs, // grace delay lets the primary source win first
+    nextAttemptAt: now, // eligible immediately
     createdAt: now,
     updatedAt: now,
     lastError: null,
@@ -126,7 +125,6 @@ export function deadLetters() {
     .filter((j) => j.status === "dead")
     .map((j) => ({
       id: j.id,
-      source: j.source,
       email: j.enrollment?.email,
       product: j.enrollment?.product,
       attempts: j.attempts,

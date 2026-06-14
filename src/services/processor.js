@@ -1,7 +1,7 @@
 import { config } from "../config.js";
 import { logger } from "../logger.js";
 import { sendWelcomeEmail } from "./mailer.js";
-import { markSent, alreadySent, recentlyWelcomed } from "../utils/dedupe.js";
+import { markSent } from "../utils/dedupe.js";
 import * as queue from "../utils/queue.js";
 
 let running = false;
@@ -14,19 +14,9 @@ function backoffFor(attempts) {
 }
 
 async function processOne(job) {
-  // Re-check at send time so a delayed backup (CCAvenue) becomes a no-op if the
-  // primary (Learnyst) already welcomed this student in the meantime.
-  const email = job.enrollment?.email;
-  if (alreadySent(job.key) || recentlyWelcomed(email, config.reconcile.windowMs)) {
-    logger.info(
-      `Job ${job.id} (${email}) skipped — already welcomed (source=${job.source}). Reconciled.`
-    );
-    queue.markDone(job.id);
-    return;
-  }
   try {
     await sendWelcomeEmail(job.enrollment);
-    markSent(job.key, email); // idempotency + cross-source reconciliation
+    markSent(job.key); // idempotency: future duplicates are skipped
     queue.markDone(job.id);
   } catch (err) {
     const nextAttempts = job.attempts + 1;
