@@ -1,0 +1,29 @@
+{
+  "name": "algocam-learnyst-welcome",
+  "version": "1.0.0",
+  "description": "Receives Learnyst enrollment webhooks and emails a welcome message to new Algocam students.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "tunnel": "ngrok http ${PORT:-3000}",
+    "send:test": "node scripts/send-test-webhook.js"
+  },
+  "keywords": [
+    "learnyst",
+    "webhook",
+    "email",
+    "algocam",
+    "lms"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14"
+  }
+}
