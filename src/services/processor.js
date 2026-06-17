@@ -2,6 +2,11 @@ import { config } from "../config.js";
 import { logger } from "../logger.js";
 import { sendWelcomeEmail } from "./mailer.js";
 import { markSent } from "../utils/dedupe.js";
+import {
+  discordChannelForProduct,
+  discordEnabledForProduct,
+  createUniqueInvite,
+} from "./discord.js";
 import * as queue from "../utils/queue.js";
 
 let running = false;
@@ -15,6 +20,24 @@ function backoffFor(attempts) {
 
 async function processOne(job) {
   try {
+    // For products enrolled in the auto-invite program, mint a unique single-use
+    // Discord invite BEFORE sending the email. We persist it onto the job so an
+    // SMTP retry reuses the same invite instead of burning a new one each time.
+    if (
+      discordEnabledForProduct(job.enrollment?.product) &&
+      !job.enrollment?.discordInvite
+    ) {
+      const channelId = discordChannelForProduct(job.enrollment.product);
+      const invite = await createUniqueInvite(channelId, {
+        reason: `Enrollment: ${job.enrollment.email} / ${job.enrollment.product}`,
+      });
+      job.enrollment.discordInvite = invite.url;
+      queue.updateEnrollment(job.id, job.enrollment);
+      logger.info(
+        `Created Discord invite for ${job.enrollment.email} (${job.enrollment.product}): ${invite.url}`
+      );
+    }
+
     await sendWelcomeEmail(job.enrollment);
     markSent(job.key); // idempotency: future duplicates are skipped
     queue.markDone(job.id);

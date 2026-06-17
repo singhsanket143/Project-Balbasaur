@@ -92,6 +92,19 @@ export function markDone(id) {
   persist();
 }
 
+/**
+ * Persist updated enrollment data onto a job (e.g. a freshly created Discord
+ * invite) so that an SMTP retry reuses the SAME single-use invite instead of
+ * burning a new one on every attempt.
+ */
+export function updateEnrollment(id, enrollment) {
+  const job = store.jobs[id];
+  if (!job) return;
+  job.enrollment = enrollment;
+  job.updatedAt = Date.now();
+  persist();
+}
+
 export function reschedule(id, { delayMs, error }) {
   const job = store.jobs[id];
   if (!job) return;

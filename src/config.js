@@ -18,6 +18,36 @@ function required(name, value) {
 
 const welcomeEventsRaw = (process.env.WELCOME_EVENTS || "*").trim();
 
+// Normalizes a product name for matching: lowercased, trimmed, and with any
+// run of internal whitespace collapsed to a single space. This makes matching
+// tolerant of the quirks Learnyst sends (e.g. accidental double spaces in a
+// product title) so a mapping doesn't silently fail to match.
+export function normalizeProductName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+// Map product name -> Discord channel id, so we can scope the auto-invite to
+// specific products. Multiple products are separated by ";" and each pair is
+// "Product Name=channelId". Example:
+//   DISCORD_PRODUCT_CHANNELS="Course A=123456789;Course B=987654321"
+// Keys are matched against the parsed product name after normalization
+// (case-insensitive, whitespace-collapsed).
+function parseProductChannels(raw) {
+  const map = {};
+  if (!raw) return map;
+  for (const pair of String(raw).split(";")) {
+    const idx = pair.indexOf("=");
+    if (idx === -1) continue;
+    const name = normalizeProductName(pair.slice(0, idx));
+    const channelId = pair.slice(idx + 1).trim();
+    if (name && channelId) map[name] = channelId;
+  }
+  return map;
+}
+
 export const config = {
   port: Number(process.env.PORT || 3000),
   webhookToken: required("WEBHOOK_TOKEN", process.env.WEBHOOK_TOKEN),
@@ -52,6 +82,18 @@ export const config = {
   },
 
   dryRun: bool(process.env.DRY_RUN, false),
+
+  // Discord: per-student, single-use, time-limited invite links.
+  discord: {
+    botToken: process.env.DISCORD_BOT_TOKEN || "",
+    // Invite TTL in seconds. Discord caps this at 604800 (7 days); 0 = never
+    // expires by time. The link stays single-use via inviteMaxUses regardless.
+    inviteMaxAgeSec: Number(process.env.DISCORD_INVITE_MAX_AGE_SEC ?? 0),
+    // Single-use: the invite is invalidated the moment one person joins with it.
+    inviteMaxUses: Number(process.env.DISCORD_INVITE_MAX_USES || 1),
+    // Only these products get an auto-invite; everything else gets the standard email.
+    productChannels: parseProductChannels(process.env.DISCORD_PRODUCT_CHANNELS),
+  },
 
   // How often the retry worker scans the durable queue.
   queuePollMs: Number(process.env.QUEUE_POLL_MS || 5000),
