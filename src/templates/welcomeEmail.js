@@ -50,7 +50,7 @@ export function buildWelcomeEmail({ enrollment, branding }) {
         "  Please note:",
         "    - This link works only once and is unique to you — do NOT share it with anyone.",
         "    - Do not click it until you are logged into the right account, or you may use it up by mistake.",
-        '    - If you ever see "Invite Invalid" or "Expired", just reply to this email and we will send you a fresh link.',
+        "    - Once used or expired, this link cannot be reissued — please follow the steps above carefully.",
       ]
     : [
         "You'll be receiving a Discord link within the next 48 hours so you can connect with your fellow peers.",
@@ -103,7 +103,7 @@ export function buildWelcomeEmail({ enrollment, branding }) {
                   </tr>
                 </table>
                 <div style="background:#fff7ed;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;margin:0 0 28px;color:#92400e;font-size:14px;line-height:1.5;">
-                  ⚠️ This is a <strong>one-time link just for you</strong> — please don't share it, and don't click it until you're logged into Discord. If it ever says <em>"Invite Invalid"</em> or <em>"Expired"</em>, simply reply to this email and we'll send you a fresh one.
+                  ⚠️ This is a <strong>one-time link just for you</strong> — please don't share it, and don't click it until you're logged into Discord. Once used or expired, <strong>this link cannot be reissued</strong>, so follow the steps above carefully.
                 </div>`
     : `<div style="background:#eef2ff;border-left:4px solid #4f46e5;border-radius:8px;padding:16px 20px;margin:0 0 24px;color:#3730a3;">
                   💬 You'll be receiving a <strong>Discord link within the next 48 hours</strong>
