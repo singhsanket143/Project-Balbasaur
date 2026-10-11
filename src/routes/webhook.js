@@ -2,6 +2,7 @@ import express from "express";
 import { config } from "../config.js";
 import { logger } from "../logger.js";
 import { parseEnrollment, shouldSendWelcome } from "../services/enrollment.js";
+import { discordEnabledForProduct } from "../services/discord.js";
 import { buildKey, alreadySent } from "../utils/dedupe.js";
 import * as queue from "../utils/queue.js";
 
@@ -39,6 +40,13 @@ webhookRouter.post("/learnyst", async (req, res) => {
     logger.warn(`Skipping welcome email: ${decision.reason}`);
     // Always 200 so Learnyst doesn't keep retrying a payload we intentionally skip.
     return res.status(200).json({ ok: true, skipped: decision.reason });
+  }
+
+  if (!discordEnabledForProduct(enrollment.product)) {
+    logger.info(
+      `Skipping welcome email: no Discord mapping for product=${enrollment.product || "?"}`
+    );
+    return res.status(200).json({ ok: true, skipped: "product_not_discord_mapped" });
   }
 
   const key = buildKey(enrollment);

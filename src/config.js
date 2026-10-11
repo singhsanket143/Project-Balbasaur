@@ -30,19 +30,22 @@ export function normalizeProductName(name) {
 }
 
 // Map product name -> Discord channel id, so we can scope the auto-invite to
-// specific products. Multiple products are separated by ";" and each pair is
-// "Product Name=channelId". Example:
-//   DISCORD_PRODUCT_CHANNELS="Course A=123456789;Course B=987654321"
+// specific products. One mapping per line and/or ";" separated; each pair is
+// "Product Name=channelId". Example (multiline in .env inside double quotes):
+//   DISCORD_PRODUCT_CHANNELS="Course A=123456789
+//   Course B=987654321"
 // Keys are matched against the parsed product name after normalization
 // (case-insensitive, whitespace-collapsed).
 function parseProductChannels(raw) {
   const map = {};
   if (!raw) return map;
-  for (const pair of String(raw).split(";")) {
-    const idx = pair.indexOf("=");
+  for (const pair of String(raw).split(/[;\n]+/)) {
+    const line = pair.trim();
+    if (!line || line.startsWith("#")) continue;
+    const idx = line.indexOf("=");
     if (idx === -1) continue;
-    const name = normalizeProductName(pair.slice(0, idx));
-    const channelId = pair.slice(idx + 1).trim();
+    const name = normalizeProductName(line.slice(0, idx));
+    const channelId = line.slice(idx + 1).trim();
     if (name && channelId) map[name] = channelId;
   }
   return map;

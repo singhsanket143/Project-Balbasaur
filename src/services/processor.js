@@ -19,6 +19,14 @@ function backoffFor(attempts) {
 }
 
 async function processOne(job) {
+  if (!discordEnabledForProduct(job.enrollment?.product)) {
+    queue.markDone(job.id);
+    logger.info(
+      `Skipped welcome email (no Discord mapping) for ${job.enrollment?.email} (${job.enrollment?.product || "?"})`
+    );
+    return;
+  }
+
   try {
     // For products enrolled in the auto-invite program, mint a unique single-use
     // Discord invite BEFORE sending the email. We persist it onto the job so an
